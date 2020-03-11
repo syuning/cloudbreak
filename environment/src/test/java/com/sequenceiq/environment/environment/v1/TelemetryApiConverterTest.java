@@ -52,7 +52,7 @@ public class TelemetryApiConverterTest {
         fr.addWorkloadAnalytics(true);
         telemetryRequest.setFeatures(fr);
         // WHEN
-        EnvironmentTelemetry result = underTest.convert(telemetryRequest);
+        EnvironmentTelemetry result = underTest.convert(telemetryRequest, accountTelemetryService.getOrDefault(accountId).getFeatures());
         // THEN
         assertEquals(INSTANCE_PROFILE_VALUE, result.getLogging().getS3().getInstanceProfile());
         assertTrue(result.getFeatures().getClusterLogsCollection().isEnabled());
@@ -65,7 +65,7 @@ public class TelemetryApiConverterTest {
         // GIVEN
         TelemetryRequest telemetryRequest = new TelemetryRequest();
         // WHEN
-        EnvironmentTelemetry result = underTest.convert(telemetryRequest);
+        EnvironmentTelemetry result = underTest.convert(telemetryRequest, accountTelemetryService.getOrDefault(accountId).getFeatures());
         // THEN
         assertNull(result.getFeatures());
     }
@@ -77,7 +77,7 @@ public class TelemetryApiConverterTest {
         FeaturesRequest fr = new FeaturesRequest();
         telemetryRequest.setFeatures(fr);
         // WHEN
-        EnvironmentTelemetry result = underTest.convert(telemetryRequest);
+        EnvironmentTelemetry result = underTest.convert(telemetryRequest, accountTelemetryService.getOrDefault(accountId).getFeatures());
         // THEN
         assertNull(result.getFeatures().getWorkloadAnalytics());
     }
@@ -90,7 +90,7 @@ public class TelemetryApiConverterTest {
         fr.addWorkloadAnalytics(true);
         telemetryRequest.setFeatures(fr);
         // WHEN
-        EnvironmentTelemetry result = underTest.convert(telemetryRequest);
+        EnvironmentTelemetry result = underTest.convert(telemetryRequest, accountTelemetryService.getOrDefault(accountId).getFeatures());
         // THEN
         assertTrue(result.getFeatures().getWorkloadAnalytics().isEnabled());
     }
@@ -103,7 +103,7 @@ public class TelemetryApiConverterTest {
         fr.addWorkloadAnalytics(false);
         telemetryRequest.setFeatures(fr);
         // WHEN
-        EnvironmentTelemetry result = underTest.convert(telemetryRequest);
+        EnvironmentTelemetry result = underTest.convert(telemetryRequest, accountTelemetryService.getOrDefault(accountId).getFeatures());
         // THEN
         assertFalse(result.getFeatures().getWorkloadAnalytics().isEnabled());
     }
