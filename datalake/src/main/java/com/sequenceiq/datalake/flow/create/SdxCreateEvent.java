@@ -4,7 +4,6 @@ import com.sequenceiq.flow.core.FlowEvent;
 
 public enum SdxCreateEvent implements FlowEvent {
 
-    ENV_WAIT_EVENT("ENV_WAIT_EVENT"),
     ENV_WAIT_SUCCESS_EVENT("EnvWaitSuccessEvent"),
     RDS_WAIT_EVENT("RDS_WAIT_EVENT"),
     RDS_WAIT_SUCCESS_EVENT("RdsWaitSuccessEvent"),
