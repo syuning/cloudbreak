@@ -134,15 +134,13 @@ public class ClusterBuilderService {
         clusterService.updateCluster(cluster);
         final Telemetry telemetry = componentConfigProviderService.getTelemetry(stackId);
 
-        if (cluster.getProxyConfigCrn() != null) {
-            ProxyConfig proxyConfig = proxyConfigDtoService.getByCrn(cluster.getProxyConfigCrn());
-            if (proxyConfig != null) {
-                LOGGER.info("proxyConfig is not null, setup proxy for cluster");
-                connector.clusterSetupService().setupProxy(proxyConfig);
-            } else {
-                LOGGER.info("proxyConfig was not found by proxyConfigCrn");
-            }
-        }
+        Optional<ProxyConfig> proxyConfig = proxyConfigDtoService.getByCrnWithEnvironmentFallback(cluster.getProxyConfigCrn(), cluster.getEnvironmentCrn());
+        proxyConfig.ifPresentOrElse(
+                pc -> {
+                    LOGGER.info("proxyConfig is not null, setup proxy for cluster");
+                    connector.clusterSetupService().setupProxy(pc);
+                },
+                () -> LOGGER.info("proxyConfig was not found by proxyConfigCrn"));
 
         Set<DatalakeResources> datalakeResources = datalakeResourcesService
                 .findDatalakeResourcesByWorkspaceAndEnvironment(stack.getWorkspace().getId(), stack.getEnvironmentCrn());

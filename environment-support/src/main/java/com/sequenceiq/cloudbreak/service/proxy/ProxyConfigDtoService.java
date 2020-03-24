@@ -1,14 +1,18 @@
 package com.sequenceiq.cloudbreak.service.proxy;
 
+import java.util.Optional;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.vault.VaultException;
 
 import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
@@ -35,6 +39,30 @@ public class ProxyConfigDtoService {
 
     public ProxyConfig getByCrn(String resourceCrn) {
         return convert(getProxyConfig(resourceCrn, proxyEndpoint::getByResourceCrn));
+    }
+
+    public Optional<ProxyConfig> getByCrnWithEnvironmentFallback(String resourceCrn, @Nonnull String environmentCrn) {
+        if (!StringUtils.isEmpty(resourceCrn)) {
+            return Optional.ofNullable(getByCrn(resourceCrn));
+        } else {
+            return getByEnvironmentCrn(environmentCrn);
+        }
+    }
+
+    public Optional<ProxyConfig> getByEnvironmentCrn(String environmentCrn) {
+        try {
+            return Optional.ofNullable(convert(proxyEndpoint.getByEnvironmentCrn(environmentCrn)));
+        } catch (NotFoundException ex) {
+            return Optional.empty();
+        }
+    }
+
+    public boolean isProxyConfiguredForEnvironment(String environmentCrn) {
+        try {
+            return proxyEndpoint.getByEnvironmentCrn(environmentCrn) != null;
+        } catch (NotFoundException ex) {
+            return false;
+        }
     }
 
     private ProxyConfig convert(ProxyResponse proxyResponse) {

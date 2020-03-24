@@ -4,6 +4,7 @@ import static java.util.Collections.singletonMap;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -25,18 +26,17 @@ public class ProxyConfigProvider {
     private ProxyConfigDtoService proxyConfigDtoService;
 
     public void decoratePillarWithProxyDataIfNeeded(Map<String, SaltPillarProperties> servicePillar, Cluster cluster) {
-        String proxyConfigCrn = cluster.getProxyConfigCrn();
-        if (StringUtils.isNotEmpty(proxyConfigCrn)) {
-            ProxyConfig proxyConfig = proxyConfigDtoService.getByCrn(proxyConfigCrn);
+        Optional<ProxyConfig> proxyConfig = proxyConfigDtoService.getByCrnWithEnvironmentFallback(cluster.getProxyConfigCrn(), cluster.getEnvironmentCrn());
+        proxyConfig.ifPresent(pc -> {
             Map<String, Object> proxy = new HashMap<>();
-            proxy.put("host", proxyConfig.getServerHost());
-            proxy.put("port", proxyConfig.getServerPort());
-            proxy.put("protocol", proxyConfig.getProtocol());
-            if (StringUtils.isNotBlank(proxyConfig.getUserName()) && StringUtils.isNotBlank(proxyConfig.getPassword())) {
-                proxy.put("user", proxyConfig.getUserName());
-                proxy.put("password", proxyConfig.getPassword());
+            proxy.put("host", pc.getServerHost());
+            proxy.put("port", pc.getServerPort());
+            proxy.put("protocol", pc.getProtocol());
+            if (StringUtils.isNotBlank(pc.getUserName()) && StringUtils.isNotBlank(pc.getPassword())) {
+                proxy.put("user", pc.getUserName());
+                proxy.put("password", pc.getPassword());
             }
             servicePillar.put(PROXY_KEY, new SaltPillarProperties(PROXY_SLS_PATH, singletonMap(PROXY_KEY, proxy)));
-        }
+        });
     }
 }

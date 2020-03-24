@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -106,7 +107,8 @@ public class ProxyConfigProviderTest {
         proxyConfigBuilder.withServerPort(3128);
         proxyConfigBuilder.withProtocol("http");
         cluster.setProxyConfigCrn("ANY_CRN");
-        when(proxyConfigDtoService.getByCrn(anyString())).thenReturn(proxyConfigBuilder.build());
+        cluster.setEnvironmentCrn("ANY_CRN");
+        when(proxyConfigDtoService.getByCrnWithEnvironmentFallback(anyString(), anyString())).thenReturn(Optional.of(proxyConfigBuilder.build()));
         proxyConfigProvider.decoratePillarWithProxyDataIfNeeded(servicePillar, cluster);
         SaltPillarProperties pillarProperties = servicePillar.get(ProxyConfigProvider.PROXY_KEY);
         assertNotNull(pillarProperties);

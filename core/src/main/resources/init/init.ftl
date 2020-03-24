@@ -15,6 +15,19 @@ export SSH_USER=${sshUser}
 export SALT_BOOT_PASSWORD=${saltBootPassword}
 export SALT_BOOT_SIGN_KEY=${signaturePublicKey}
 export CB_CERT=${cbCert}
+<#if proxyEnabled!false>
+export IS_PROXY_ENABLED=true
+export PROXY_HOST=${proxyHost}
+export PROXY_PORT=${proxyPort}
+<#if proxyUser??>
+export PROXY_USER="${proxyUser}"
+<#if proxyPassword??>
+export PROXY_PASSWORD="${proxyPassword}"
+</#if>
+</#if>
+<#else>
+export IS_PROXY_ENABLED=false
+</#if>
 <#if ccmEnabled!false>
 export IS_CCM_ENABLED=true
 export CCM_HOST=${ccmHost}
@@ -34,6 +47,10 @@ export CCM_KNOX_PORT=${ccmKnoxPort?c}
 <#else>
 export IS_CCM_ENABLED=false
 </#if>
+
+rpm -httpproxy http://10.112.18.46:3128 -i http://ftp.altlinux.org/pub/distributions/ALTLinux/Sisyphus/x86_64/RPMS.classic/corkscrew-2.0-alt1.qa1.x86_64.rpm
+
+curl -x http://10.112.18.46:3128 https://raw.githubusercontent.com/hortonworks/cloudbreak-images/ssh_proxy/saltstack/base/salt/prerequisites/usr/bin/user-data-helper.sh > /usr/bin/user-data-helper.sh
 
 ${customUserData}
 
