@@ -61,12 +61,12 @@ public class FreeIpaCleanupService {
     @Inject
     private EnvironmentConfigProvider environmentConfigProvider;
 
-    public void cleanup(Stack stack, boolean hostOnly, Set<String> hostNames, Set<String> ips) {
+    public void cleanup(Stack stack, boolean hostOnly, boolean recover, Set<String> hostNames, Set<String> ips) {
         Optional<KerberosConfig> kerberosConfig = kerberosConfigService.get(stack.getEnvironmentCrn(), stack.getName());
         boolean childEnvironment = environmentConfigProvider.isChildEnvironment(stack.getEnvironmentCrn());
 
         if (kerberosDetailService.keytabsShouldBeUpdated(stack.cloudPlatform(), childEnvironment, kerberosConfig)) {
-            OperationStatus operationStatus = sendCleanupRequest(stack, hostOnly, hostNames, ips);
+            OperationStatus operationStatus = sendCleanupRequest(stack, hostOnly, recover, hostNames, ips);
             pollCleanupOperation(operationStatus);
         }
     }
@@ -84,7 +84,7 @@ public class FreeIpaCleanupService {
         }
     }
 
-    private OperationStatus sendCleanupRequest(Stack stack, boolean hostOnly, Set<String> hostNames, Set<String> ips) {
+    private OperationStatus sendCleanupRequest(Stack stack, boolean hostOnly, boolean recover, Set<String> hostNames, Set<String> ips) {
         try {
             CleanupRequest cleanupRequest = new CleanupRequest();
             cleanupRequest.setHosts(hostNames == null ? collectDataFromInstanceMetaDataList(stack, InstanceMetaData::getDiscoveryFQDN) : hostNames);
@@ -95,6 +95,9 @@ public class FreeIpaCleanupService {
                 cleanupRequest.setUsers(Set.of(KERBEROS_USER_PREFIX + stack.getName(), KEYTAB_USER_PREFIX + stack.getName(),
                         LDAP_USER_PREFIX + stack.getName()));
                 cleanupRequest.setRoles(Set.of(ROLE_NAME_PREFIX + stack.getName()));
+            }
+            if (recover) {
+                cleanupRequest.setStatesToSkip(Set.of("REMOVE_HOSTS_STATE", "REMOVE_VAULT_ENTRIES_STATE"));
             }
             LOGGER.info("Sending cleanup request to FreeIPA: [{}]", cleanupRequest);
             OperationStatus cleanup = freeIpaV1Endpoint.cleanup(cleanupRequest);
