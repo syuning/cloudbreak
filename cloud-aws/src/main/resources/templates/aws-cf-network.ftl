@@ -328,6 +328,36 @@
                 }
             }
         },
+        <#if privateSubnetEnabled == true>
+        "S3Endpoint" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "RouteTableIds" : [
+                <#list subnetDetails as subnet>
+                    <#if subnet.privateSubnetCidr?has_content>
+                    {"Ref" : "PRT${subnet.index}"}<#if subnet_has_next>,</#if>
+                    </#if>
+                </#list>
+                ],
+                "ServiceName" : { "Fn::Sub": "com.amazonaws.${r"${AWS::Region}"}.s3" },
+                "VpcId" : {"Ref" : "VPC"}
+            }
+        },
+        "DDBEndpoint" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "RouteTableIds" : [
+                <#list subnetDetails as subnet>
+                    <#if subnet.privateSubnetCidr?has_content>
+                    {"Ref" : "PRT${subnet.index}"}<#if subnet_has_next>,</#if>
+                    </#if>
+                </#list>
+                ],
+                "ServiceName" : { "Fn::Sub": "com.amazonaws.${r"${AWS::Region}"}.dynamodb" },
+                "VpcId" : {"Ref" : "VPC"}
+            }
+        },
+        </#if>
         "PublicRouteTable": {
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
